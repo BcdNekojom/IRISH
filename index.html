@@ -160,6 +160,16 @@
 
   .hidden{ display:none !important; }
 
+  /* ---------- teasing toast ---------- */
+  #tease { position:fixed; top:74px; left:50%; transform:translateX(-50%); z-index:60;
+    background:rgba(255,255,255,.96); color:#ff5b8c; font-weight:800; font-size:clamp(14px,4vw,20px);
+    padding:10px 18px; border-radius:40px; box-shadow:0 8px 22px rgba(255,91,140,.35);
+    border:2px solid #ffc4d8; opacity:0; pointer-events:none; transition:opacity .3s;
+    max-width:90vw; text-align:center; }
+  #tease.show { opacity:1; animation: poke .5s ease; }
+  @keyframes poke { 0%{ transform:translateX(-50%) scale(.6);}
+    60%{ transform:translateX(-50%) scale(1.12);} 100%{ transform:translateX(-50%) scale(1);} }
+
   /* ---------- Mascot (Stitch) ---------- */
   .stitch { width:clamp(130px,40vw,220px); display:block; margin:0 auto;
     filter:drop-shadow(0 12px 18px rgba(120,160,230,.4)); animation: stitchbob 3s ease-in-out infinite; }
@@ -171,6 +181,7 @@
 <body>
 
 <ul id="petals" style="list-style:none;"></ul>
+<div id="tease"></div>
 
 <!-- top score bar -->
 <div class="tops">
@@ -190,7 +201,7 @@
   </div>
   <h1>สุขสันต์วันเกิด!</h1>
   <p class="sub">คนพิเศษของพี่ 💕</p>
-  <p class="hint">พี่ทำเกมเล็กๆ ให้หนูเล่นในวันเกิดของหนู<br>มี 4 ด่านน่ารักๆ รออยู่ และมีรูปของหนูรออยู่ท้ายเกม<br>ลองเล่นดูนะ แต่อยากรักจริง 😉</p>
+  <p class="hint">พี่ทำเกมเล็กๆ ให้หนูเล่นบนวันเกิดของหนู<br>มี 4 ด่านแน่ะ แต่ด่านมันกวนๆ หยอกหนูอยู่นะ<br>ระวังโดนแกล้งล่ะ... แต่สุดท้ายมีเซอร์ไพรส์รออยู่ 💝</p>
   <button class="btn" id="startBtn">เริ่มเลย! 🎈</button>
 </div>
 
@@ -223,15 +234,15 @@
 <div id="balloonScene">
   <div class="screen" style="position:absolute; pointer-events:none;">
     <h1 style="font-size:clamp(32px,7vw,52px);">ปล่อยหัวใจกัน! 🎈</h1>
-    <p class="hint" style="margin-top:6px;">แตะบอลลูนให้แตก ก่อนจะลอยหายไป</p>
+    <p class="hint" style="margin-top:6px;">แตะเฉพาะหัวใจ 💖 ให้ครบ 8 ดวง<br>ใครไปแตะของปลอม จะโดนแกล้งกลับนะ 😜</p>
   </div>
   <div id="balMsg"></div>
 </div>
 
 <!-- ===== STAGE 3: CUPCAKES ===== -->
 <div id="cupScene">
-  <h1 style="font-size:clamp(32px,7vw,52px);">เก็บคัพเค้ก! 🧁</h1>
-  <p class="hint" style="margin-top:6px;">แตะคัพเค้ก 9 ชิ้น ให้ครบ</p>
+    <h1 style="font-size:clamp(32px,7vw,52px);">เก็บคัพเค้ก! 🧁</h1>
+    <p class="hint" style="margin-top:6px;">หาคัพเค้กแท้ 9 ชิ้นให้เจอ<br>ระวังของปลอมที่แอบแฝงมากับด่านนี้ 😏</p>
   <div id="cupGrid"></div>
   <div id="cupCount">0 / 9</div>
 </div>
@@ -279,6 +290,17 @@ function playPop(){ audio(); tone(880,0,.12,"triangle",.25); tone(1320,.04,.14,"
 function playYay(){ const n=[523,659,784,1046]; n.forEach((f,i)=>tone(f,i*.11,.18,"sine",.22)); }
 function playWin(){ const n=[523,587,659,784,880,1046,1318]; n.forEach((f,i)=>tone(f,i*.12,.3,"sine",.2)); }
 function playBad(){ tone(200,0,.15,"square",.12); }
+/* --- teasing floating message --- */
+function tease(msg,ms){
+  const box=document.getElementById('tease');
+  if(!box) return;
+  box.textContent=msg;
+  box.classList.remove('show');
+  void box.offsetWidth; // restart animation
+  box.classList.add('show');
+  clearTimeout(box.__t);
+  box.__t=setTimeout(()=>box.classList.remove('show'), ms||2200);
+}
 
 document.getElementById('muteBtn').addEventListener('click',function(){
   muted=!muted; this.textContent=muted?'🔇':'🔊';
@@ -365,10 +387,15 @@ function reset(){
 /* ===================== STAGE 1: CAKE ===================== */
 let litCount=0;
 const candleColors=["#ff6b9d","#8fd3ff","#ffb84d","#a78bfa","#7ee0c5"];
+function litCandles(){
+  return Array.from(document.querySelectorAll('#candles .candle'))
+    .filter(x=>x.querySelector('.flame').style.visibility!=="hidden").length;
+}
 function buildCake(){
   const holder=document.getElementById('candles');
   holder.innerHTML=""; litCount=0;
-  const n=5;
+  const n=6;
+  const naughtyIdx=Math.floor(Math.random()*n);
   for(let i=0;i<n;i++){
     const c=document.createElement("div");
     c.className="candle";
@@ -376,33 +403,51 @@ function buildCake(){
     c.style.left=cxp+"%";
     c.style.height=(40+((i%3)*6))+"px";
     c.style.background=`repeating-linear-gradient(${45}, ${candleColors[i]} 0 6px, #fff 6px 12px)`;
+    c.dataset.naughty=(i===naughtyIdx)?"1":"0";
     c.innerHTML='<span class="flame"></span><span class="smoke">💨</span>';
     c.querySelector('.flame').addEventListener('click',(e)=>{ e.stopPropagation(); blowCandle(c); });
     holder.appendChild(c);
   }
-  const counter=document.getElementById('cakeCounter');
-  counter.textContent="เหลือเทียนอีก "+n+" เล่ม";
+  tease("เป่าเทียนไปเรื่อยๆ แต่ระวังนะ มีเทียนซนอยู่ในนั้น 😏",2600);
+  document.getElementById('cakeCounter').textContent="เหลือเทียนอีก "+n+" เล่ม (ระวังเทียนซนไว้ 😈)";
 }
 function blowCandle(c){
   playPop(); litCount++;
   const f=c.querySelector('.flame');
   f.style.visibility="hidden";
   const smoke=c.querySelector('.smoke'); smoke.classList.add('rising');
-  burst(window.innerWidth/2, window.innerHeight/4, "✨");
-  addScore(3);
-  const counter=document.getElementById('cakeCounter');
-  document.querySelectorAll('.flame').forEach(x=>{
-    if(getComputedStyle(x).visibility!=="hidden") x.style.animation="none";
-  });
-  let remaining=document.querySelectorAll('.flame').length;
-  const stillLit=Array.from(document.querySelectorAll('.flame')).filter(f=>f.style.visibility!=="hidden").length;
-  counter.textContent="เหลือเทียนอีก "+stillLit+" เล่ม";
-  // small confetti from candle pos
+  // confetti from candle pos
   const r=c.getBoundingClientRect();
   burst(r.left+r.width/2, r.top+r.height/2, "🎉");
-  if(stillLit===0){
-    setTimeout(()=>{ playYay(); show('balloonScene'); startBalloons(); },600);
+  addScore(3);
+  document.querySelectorAll('.flame').forEach(x=>{
+    if(x.style.visibility!=="hidden") x.style.animation="none";
+  });
+  // naughty candle revives once!
+  if(c.dataset.naughty==="1" && !c.dataset.revived){
+    c.dataset.revived="1";
+    tease("อ้าวว! เป่าไม่หมดหรอกนะ รู้ตัวไว้ 😝",2200);
+    setTimeout(()=>{
+      const nf=c.querySelector('.flame');
+      nf.style.visibility="visible";
+      nf.style.animation="flick .35s ease-in-out infinite alternate";
+      tease("เทียนซนมันฟื้นคืนชีพแล้วจ้าา เป่าอีกทีสิ 💨",2000);
+      updateCakeCount();
+    },1100);
+    updateCakeCount();
+    return;
   }
+  updateCakeCount();
+  if(litCandles()===0){
+    tease("เป่าเก่งมากๆ เลย! แต่ด่านต่อไปกว่าเดิมนะ 😜",2000);
+    setTimeout(()=>{ playYay(); show('balloonScene'); startBalloons(); },700);
+  }
+}
+function updateCakeCount(){
+  const still=litCandles();
+  document.getElementById('cakeCounter').textContent =
+    still>0 ? ("เหลือเทียนอีก "+still+" เล่ม"+(still===1?" (สุดท้ายแล้ว สู้ๆ!)":""))
+            : "เป่าครบแล้ว! 🎉";
 }
 /* ===================== STAGE 2: BALLOONS ===================== */
 let balloonTimer=null;
@@ -412,74 +457,96 @@ function startBalloons(){
   const scene=document.getElementById('balloonScene');
   const msg=document.getElementById('balMsg');
   msg.classList.remove('show');
-  let burstCount=0, spawned=0;
-  const target=6;
+  tease("เล็งให้ดีๆ นะ แต่บางลูกมันแกล้งมาเฉยๆ อย่าหลงกล 😜",2400);
+  let hit=0, spawned=0;
+  const target=8;
+  const decoys=["🧦","😜","🥦","🫧","🐌","🃏","🍌"];
   const spawn=()=>{
     const b=document.createElement("div");
+    const isDecoy=Math.random()<0.25;
+    const emo=isDecoy?decoys[Math.floor(Math.random()*decoys.length)]
+                      :balHearts[Math.floor(Math.random()*balHearts.length)];
     b.className="balloon floating";
-    const emo=balHearts[Math.floor(Math.random()*balHearts.length)];
     b.textContent=emo;
+    b.dataset.kind=isDecoy?"decoy":"real";
     b.style.left=(5+Math.random()*85)+"%";
     b.style.top=(70+Math.random()*30)+"%";
     b.style.fontSize=(42+Math.random()*26)+"px";
     b.style.animationDuration=(4+Math.random()*3)+"s";
     b.dataset.gone="false";
     b.addEventListener('click',()=>{
-      playPop(); burstCount++;
+      playPop();
       burst(window.innerWidth/2,window.innerHeight/3,"🎈");
       burst(window.innerWidth/2,window.innerHeight/3,emo);
       b.classList.add('pop'); b.dataset.gone="true";
-      addScore(4);
       setTimeout(()=>b.remove(),400);
-      if(burstCount>=target){
+      if(b.dataset.kind==="decoy"){
+        playBad();
+        tease("แอบอ้าง! นั่นไม่ใช่หัวใจนะ เก็บไว้เอ๊าะๆ 😝",1800);
+        return;
+      }
+      hit++;
+      addScore(4);
+      tease("ปัง!! เหลืออีก "+(target-hit)+" ดวง 💖",1100);
+      if(hit>=target){
         clearInterval(balloonTimer); balloonTimer=null;
         setTimeout(finishBalloons,300);
       }
     });
-    // remove if floats away
-    b.addEventListener('animationiteration',()=>{});
     scene.appendChild(b);
     setTimeout(()=>{ if(b.dataset.gone==="false"){ b.remove(); } },5200);
     spawned++;
-    if(spawned>40) clearInterval(balloonTimer);
+    if(spawned>60) clearInterval(balloonTimer);
   };
   for(let i=0;i<3;i++) spawn();
-  balloonTimer=setInterval(spawn, 1400);
+  balloonTimer=setInterval(spawn, 1100);
 }
 function finishBalloons(){
   const msg=document.getElementById('balMsg');
   msg.textContent="รักนะ สุดหัวใจ 💘";
   msg.classList.add('show');
+  tease("หัวใจแท้ๆ ถึงจะชนะได้ ไม่ใช่ของปลอมนะ 😌💘",2200);
   playYay();
-  setTimeout(()=>{ show('cupScene'); buildCupcakes(); },1600);
+  setTimeout(()=>{ show('cupScene'); buildCupcakes(); },1800);
 }
 function stopBalloonLoop(){ if(balloonTimer){ clearInterval(balloonTimer); balloonTimer=null; } }
 
 /* ===================== STAGE 3: CUPCAKES ===================== */
-const cupcakeEmo=["🧁","🧁","🧁","🧁","🧁","🧁","🧁","🧁","🧁"];
 function buildCupcakes(){
   const grid=document.getElementById('cupGrid'); grid.innerHTML="";
+  const decoys=["🥦","😜","🐢","🍌","🫠"];
+  let items=[];
+  for(let i=0;i<9;i++) items.push({real:true,emo:"🧁"});
+  for(let i=0;i<3;i++) items.push({real:false,emo:decoys[Math.floor(Math.random()*decoys.length)]});
+  // shuffle (Fisher-Yates)
+  for(let i=items.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [items[i],items[j]]=[items[j],items[i]]; }
   let got=0;
   const count=document.getElementById('cupCount');
   count.textContent="0 / 9";
-  for(let i=0;i<9;i++){
+  tease("เห้ย มีของปลอมปนอยู่ด้วยนะ แยกให้ออกล่ะ 😏",2600);
+  items.forEach(it=>{
     const d=document.createElement("div");
-    d.className="cupcake"; d.textContent="🧁";
-    d.style.order=Math.floor(Math.random()*9);
+    d.className="cupcake"; d.textContent=it.emo;
     d.addEventListener('click',()=>{
       if(d.classList.contains('done')) return;
-      d.classList.add('done'); got++;
+      d.classList.add('done');
+      if(!it.real){
+        playBad();
+        tease("หลอกได้! อันนี้แกล้งมาอีกแล้ว ดีนะที่ไม่หลง 😜",1800);
+        return;
+      }
+      got++;
       playPop(); burst(window.innerWidth/2, window.innerHeight/3, "🧁");
-      burst(window.innerWidth/2, window.innerHeight/3, "✨");
       addScore(4);
       count.textContent=got+" / 9";
-      if(got===9){
+      if(got>=9){
         playWin();
-        setTimeout(()=>show('photoScene'),500);
+        tease("เก็บครบแล้ว!! ไปดูของขวัญชิ้นใหญ่กัน 📸",2000);
+        setTimeout(()=>show('photoScene'),600);
       }
     });
     grid.appendChild(d);
-  }
+  });
 }
 function showFinale(){
   // hide every other scene so only the finale card (with the name) is visible
@@ -540,8 +607,10 @@ document.getElementById('finalePhoto').src=GF_PHOTO;
 function startPhoto(){
   const btn=document.getElementById('kissBtn');
   btn.disabled=false;
+  btn.style.transform="";
   setKisses(0);
-  document.getElementById('tapHint').textContent="กดจูบจนครบ 7 ดวง\nเพื่อเปิดของขวัญชิ้นสุดท้าย";
+  tease("ปุ่มจูบมันขี้อายนะ... เดี๋ยวมันหนีไปเอง 😳",2400);
+  document.getElementById('tapHint').textContent="กดจูบจนครบ 7 ดวง\n(แต่ปุ่มมันขี้อาย ชอบย้ายที่!)";
 }
 function setKisses(n){
   const pips=document.getElementById('kissPips');
@@ -568,7 +637,19 @@ document.getElementById('kissBtn').addEventListener('click',function(){
   setTimeout(()=>k.remove(),1500);
   burst(window.innerWidth/2,window.innerHeight/2,"💖");
   setKisses(Math.min(next,7));
+  // shy button dodges on some taps
+  if(cur%2===1 && next<7){
+    const btn=document.getElementById('kissBtn');
+    const dx=(Math.random()*180+30)*(Math.random()<0.5?-1:1);
+    const dy=(Math.random()*140+20)*(Math.random()<0.5?-1:1);
+    btn.style.transform="translate("+dx+"px,"+dy+"px)";
+    tease("อายอยู่! ตามปุ่มจูบที่ไม่ยอมอยู่นิ่งให้ทันสิ 😳",1900);
+  } else {
+    document.getElementById('kissBtn').style.transform="";
+  }
   if(next>=7){
+    document.getElementById('kissBtn').style.transform="";
+    tease("จูบครบแล้ว! เปิดของขวัญได้เลย 🎁",2000);
     playYay();
     setTimeout(()=>{
       playWin();
@@ -583,5 +664,5 @@ document.getElementById('replay').addEventListener('click', startGame);
 /* make sure audio context gets created on first user gesture */
 window.addEventListener('pointerdown', function(){ audio(); }, {passive:true});
 </script>
-<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a3524ae6fbd87bad',t:'MTc4ODQxMjY5Mw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a36046cbff7ce6c5',t:'MTc4ODU1OTMyNg=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
