@@ -239,11 +239,11 @@
 <!-- ===== STAGE 4: PHOTO BOOTH ===== -->
 <div id="photoScene">
   <div id="photoCard">
-    <div id="photoTitle">มีอะไรจะให้เธอดู... 📸</div>
+    <div id="photoTitle">มีอะไรจะให้หนูดู... 📸</div>
     <p id="photoHint">กดปุ่ม 💋 เพื่อส่งจูบ<br>ให้หัวใจเต็มดวง</p>
     <div id="polaroid">
-      <img id="polaroidImg" alt="แฟนของผม">
-      <div class="caption">คนที่ทำให้ผมยิ้มทุกวัน 💖</div>
+      <img id="polaroidImg" alt="แฟนของพี่">
+      <div class="caption">คนที่ทำให้พี่ยิ้มทุกวัน 💖</div>
     </div>
     <div id="tapHint">กดจูบจนครบ 7 ดวง<br>เพื่อเปิดของขวัญชิ้นสุดท้าย</div>
     <button class="kissBtn" id="kissBtn">💋</button>
@@ -257,7 +257,7 @@
     <div id="nameReveal" aria-label="IRISH"></div>
     <div id="bigTitle"></div>
     <div class="stitch" data-stitch style="animation:none; width:clamp(70px,16vw,110px); margin-bottom:6px;"></div>
-    <img id="finalePhoto" alt="แฟนของผม">
+    <img id="finalePhoto" alt="แฟนของพี่">
     <div id="finalMessage"></div>
     <button class="btn" id="replay">เล่นอีกครั้ง 🎀</button>
   </div>
@@ -491,12 +491,12 @@ function showFinale(){
   const t=document.getElementById('bigTitle');
   const m=document.getElementById('finalMessage');
   t.textContent="สุขสันต์วันเกิดนะ! 🎂";
-  m.innerHTML="ถึงแม้วันนี้ผมจะไม่ได้อยู่ข้างๆ เธอในทุกวินาที<br>"+
-    "แต่ผมหวังว่าเธอจะรู้เสมอว่า เขามีคนที่รักเธอมากแค่ไหน 💖<br><br>"+
-    "ขอให้ลูกโป่งแห่งความฝันของเธอลอยสูง<br>"+
-    "และทุกวันของเธอหอมหวานเหมือนคัพเค้ก<br><br>"+
-    "ยัยตัวฟ้าตัวน้อยนี่ มาช่วยผมส่งความรักถึงเธอด้วย<br>"+
-    "รักและคิดถึงเธอเสมอ — ของขวัญชิ้นนี้<br>ทำเพื่อคนที่ทำให้ผมยิ้มได้ทุกวัน 💕";
+  m.innerHTML="ถึงแม้วันนี้พี่จะไม่ได้อยู่ข้างๆ หนูในทุกวินาที<br>"+
+    "แต่พี่หวังว่าหนูจะรู้เสมอว่า มีคนที่รักหนูมากแค่ไหน 💖<br><br>"+
+    "ขอให้ลูกโป่งแห่งความฝันของหนูลอยสูง<br>"+
+    "และทุกวันของหนูหอมหวานเหมือนคัพเค้ก<br><br>"+
+    "สติชตัวน้อยนี่ มาช่วยพี่ส่งความรักถึงหนูด้วย<br>"+
+    "รักและคิดถึงหนูเสมอ — ของขวัญชิ้นนี้<br>ทำเพื่อคนที่ทำให้พี่ยิ้มได้ทุกวัน 💕";
   revealName("IRISH");
   // mini confetti rain
   playWin();
